@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Auto Responder</title>
+    <style>
+        /* ---------- RESET & BASE ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f0f4fe;
+            --card-bg: #ffffff;
+            --primary: #0b2b5c;
+            --primary-dark: #071d3f;
+            --primary-light: #dce6fc;
+            --accent: #6c5ce7;
+            --accent-dark: #5a4bd1;
+            --accent-light: #a29bfe;
+            --text: #0b1a33;
+            --text-muted: #4b5b7a;
+            --border: #dce3f0;
+            --shadow: 0 20px 50px rgba(11, 43, 92, 0.12);
+            --radius: 28px;
+            --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ---------- BUTTONS ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 32px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(11, 43, 92, 0.30);
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 16px 40px rgba(11, 43, 92, 0.35);
+        }
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.35);
+        }
+        .btn-accent:hover {
+            background: var(--accent-dark);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 16px 40px rgba(108, 92, 231, 0.4);
+        }
+        .btn-accent:active {
+            transform: scale(0.96);
+        }
+
+        /* ---------- ANIMATED BACKGROUND BLOBS ---------- */
+        .hero-blobs {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.12;
+            animation: floatBlob 24s ease-in-out infinite;
+        }
+        .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: #0b2b5c;
+            top: -150px;
+            right: -120px;
+            animation-delay: 0s;
+        }
+        .blob-2 {
+            width: 350px;
+            height: 350px;
+            background: #6c5ce7;
+            bottom: -80px;
+            left: -80px;
+            animation-delay: -6s;
+        }
+        .blob-3 {
+            width: 220px;
+            height: 220px;
+            background: #a29bfe;
+            top: 40%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            animation-delay: -12s;
+        }
+
+        @keyframes floatBlob {
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(40px, -50px) scale(1.1);
+            }
+            50% {
+                transform: translate(-30px, 30px) scale(0.9);
+            }
+            75% {
+                transform: translate(50px, 40px) scale(1.05);
+            }
+        }
+
+        /* ---------- NAV ---------- */
+        .navbar {
+            padding: 20px 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .logo span {
+            color: var(--primary);
+        }
+        .logo i {
+            font-size: 2rem;
+            line-height: 1;
+            color: var(--accent);
+        }
+
+        .lang-group {
+            display: flex;
+            gap: 8px;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .lang-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 32px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-muted);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            touch-action: manipulation;
+        }
+        .lang-btn.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(11, 43, 92, 0.25);
+        }
+        .lang-btn:hover:not(.active) {
+            color: var(--text);
+            transform: scale(1.04);
+        }
+
+        /* ---------- HERO ---------- */
+        .hero {
+            padding: 40px 0 60px;
+            position: relative;
+            flex: 1;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-anim {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        .hero-anim-delay-1 {
+            animation-delay: 0.2s;
+        }
+        .hero-anim-delay-2 {
+            animation-delay: 0.4s;
+        }
+        .hero-anim-delay-3 {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(11, 43, 92, 0.15);
+            }
+            50% {
+                box-shadow: 0 0 0 14px rgba(11, 43, 92, 0);
+            }
+        }
+
+        .badge-dot {
+            width: 10px;
+            height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-dot 1.8s infinite;
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.7);
+            }
+        }
+
+        .hero h1 {
+            font-size: 3.4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            margin-bottom: 16px;
+        }
+        .hero h1 span {
+            color: var(--primary);
+        }
+        .hero h1 .highlight {
+            color: var(--accent);
+        }
+
+        .hero p.sub {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 500px;
+            margin-bottom: 28px;
+        }
+
+        .typing-line {
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: 500;
+            min-height: 2.2rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .typing-text {
+            display: inline-block;
+        }
+        .typing-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.2rem;
+            background: var(--accent);
+            animation: blink 0.8s step-end infinite;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        /* ---------- MOCKUP (phone) ---------- */
+        .mockup-wrapper {
+            display: flex;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .device-mockup {
+            width: 300px;
+            height: 600px;
+            background: #111827;
+            border-radius: 44px;
+            padding: 14px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.18), 0 0 0 8px #dce3f0;
+            animation: floatPhone 6s ease-in-out infinite;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .device-mockup:hover {
+            transform: rotateY(-6deg) rotateX(4deg) scale(1.02);
+        }
+
+        @keyframes floatPhone {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-14px);
+            }
+        }
+
+        .mockup-screen {
+            width: 100%;
+            height: 100%;
+            background: #f0f4fe;
+            border-radius: 32px;
+            overflow: hidden;
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            background-image: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 60%);
+        }
+
+        .mockup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 700;
+        }
+        .mockup-header .app-name {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        .mockup-header .status {
+            background: #6b7a99;
+            color: #fff;
+            font-size: 0.6rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .msg-bubbles {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px 0;
+            overflow: hidden;
+        }
+
+        .msg {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+        .msg.received {
+            background: #e8ecf6;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            color: var(--text);
+        }
+        .msg.sent {
+            background: var(--accent);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            color: #fff;
+        }
+        .msg.typing {
+            background: #e8ecf6;
+            align-self: flex-start;
+            padding: 12px 18px;
+            display: flex;
+            gap: 5px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            display: inline-block;
+            animation: typingDot 1.4s infinite both;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typingDot {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-6px);
+                opacity: 1;
+            }
+        }
+
+        .mockup-footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6b7a99;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 10px 0;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+            font-weight: 500;
+        }
+
+        .scroll-hint {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(8px);
+            }
+        }
+
+        /* ---------- FEATURES ---------- */
+        .features {
+            padding: 80px 0;
+            background: #fff;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 48px;
+            letter-spacing: -0.5px;
+        }
+        .section-title span {
+            color: var(--primary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg);
+            padding: 32px 24px;
+            border-radius: var(--radius);
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid transparent;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-icon {
+            font-size: 2.8rem;
+            margin-bottom: 12px;
+            display: inline-block;
+            transition: transform 0.5s;
+        }
+        .feature-card:hover .feature-icon {
+            transform: scale(1.15) rotate(-4deg);
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* ---------- DOWNLOAD SECTION ---------- */
+        .download-section {
+            padding: 80px 0 60px;
+            background: var(--primary);
+            color: #fff;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .download-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(108, 92, 231, 0.15), transparent 70%);
+            animation: shimmerBg 10s ease-in-out infinite;
+        }
+        @keyframes shimmerBg {
+            0%,
+            100% {
+                transform: translateX(-20%) scale(1);
+            }
+            50% {
+                transform: translateX(20%) scale(1.2);
+            }
+        }
+
+        .download-section h2 {
+            font-size: 2.6rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        .download-section p.sub-download {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .download-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .download-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(6px);
+            padding: 28px 34px;
+            border-radius: 32px;
+            min-width: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s;
+        }
+        .download-card:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-6px);
+        }
+        .download-card .btn {
+            margin-top: 8px;
+        }
+        .download-card .btn-white {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        .download-card .btn-white:hover {
+            background: #f3f6ff;
+            transform: scale(1.04);
+        }
+        .download-card .btn-white:active {
+            transform: scale(0.96);
+        }
+        .download-card .badge-label {
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .download-card .badge-label small {
+            font-weight: 400;
+            opacity: 0.7;
+            font-size: 0.8rem;
+        }
+
+        /* ---------- FOOTER ---------- */
+        .footer {
+            padding: 48px 0 32px;
+            background: #eef2f8;
+        }
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .footer-brand .logo {
+            font-size: 1.5rem;
+        }
+        .footer-brand p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .footer-email {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .footer-email:hover {
+            color: var(--primary);
+            transform: scale(1.04);
+        }
+        .footer-bottom {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 900px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 40px;
+            }
+            .hero {
+                padding: 30px 0 50px;
+            }
+            .hero h1 {
+                font-size: 2.6rem;
+            }
+            .hero p.sub {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .hero-actions {
+                justify-content: center;
+            }
+            .mockup-wrapper {
+                order: -1;
+            }
+            .device-mockup {
+                width: 250px;
+                height: 500px;
+            }
+            .section-title {
+                font-size: 2rem;
+            }
+            .download-section h2 {
+                font-size: 2rem;
+            }
+            .download-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+            .download-card {
+                width: 100%;
+                max-width: 360px;
+            }
+            .typing-line {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 0 16px;
+            }
+            .nav-content {
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+            .logo {
+                font-size: 1.4rem;
+            }
+            .lang-btn {
+                padding: 6px 14px;
+                font-size: 0.75rem;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero p.sub {
+                font-size: 1rem;
+            }
+            .btn {
+                padding: 12px 22px;
+                font-size: 0.9rem;
+                width: 100%;
+                justify-content: center;
+            }
+            .device-mockup {
+                width: 200px;
+                height: 400px;
+                border-radius: 36px;
+                padding: 10px;
+            }
+            .mockup-screen {
+                border-radius: 28px;
+                padding: 12px 10px;
+            }
+            .features {
+                padding: 60px 0;
+            }
+            .section-title {
+                font-size: 1.7rem;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .download-section {
+                padding: 60px 0 40px;
+            }
+            .download-section h2 {
+                font-size: 1.7rem;
+            }
+            .download-card {
+                padding: 20px 18px;
+            }
+            .footer-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .blob-1 {
+                width: 200px;
+                height: 200px;
+            }
+            .blob-2 {
+                width: 160px;
+                height: 160px;
+            }
+            .blob-3 {
+                width: 120px;
+                height: 120px;
+            }
+            .msg {
+                font-size: 0.65rem;
+                padding: 6px 10px;
+            }
+            .typing-line {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+            .device-mockup {
+                width: 170px;
+                height: 350px;
+            }
+        }
+
+        @media print {
+            .hero-blobs {
+                display: none;
+            }
+            .navbar {
+                position: relative;
+                background: #fff;
+            }
+            .device-mockup {
+                animation: none;
+                box-shadow: none;
+            }
+            .download-section {
+                background: #0b2b5c !important;
+            }
+            .btn {
+                border: 1px solid #ccc;
+            }
+        }
+
+        .text-accent {
+            color: var(--accent);
+        }
+        .mt-2 {
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== BACKGROUND BLOBS ========== -->
+    <div class="hero-blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="#" class="logo">
+                    <i>⚡</i> Auto<span>Responder</span>
+                </a>
+                <div class="lang-group" id="langToggle">
+                    <button class="lang-btn active" data-lang="bn">বাংলা</button>
+                    <button class="lang-btn" data-lang="en">English</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-text">
+                    <div class="hero-badge hero-anim">
+                        <span class="badge-dot"></span>
+                        <span data-i18n="badge">অটো-রিপ্লাই · কখনও মিস করবেন না</span>
+                    </div>
+                    <h1 class="hero-anim" data-i18n="heroTitle">
+                        <span>কখনও</span> একটি <span class="highlight">বার্তা</span> মিস করবেন না
+                    </h1>
+                    <p class="sub hero-anim hero-anim-delay-1" data-i18n="heroSub">
+                        Auto Responder আপনাকে সংযুক্ত রাখতে সাহায্য করে — যখন আপনি ব্যস্ত, তখন স্বয়ংক্রিয়ভাবে উত্তর দেয়।
+                    </p>
+                    <div class="typing-line hero-anim hero-anim-delay-1">
+                        <span class="typing-text" data-words='["✅ তাত্ক্ষণিক অটো-রিপ্লাই","⏰ স্মার্ট শিডিউল রুলস","🔒 ১০০% অন-ডিভাইস প্রাইভেসি","📩 কখনও বার্তা মিস করবেন না"]'></span>
+                        <span class="typing-cursor" aria-hidden="true"></span>
+                    </div>
+                    <div class="hero-actions hero-anim hero-anim-delay-2">
+                        <!-- Hero download button → smooth scroll to download section -->
+                        <a href="#download" class="btn btn-primary" id="heroDownloadBtn">
+                            📱 <span data-i18n="downloadBtn">অ্যাপ ডাউনলোড</span>
+                        </a>
+                        <a href="#features" class="btn btn-accent">
+                            ✨ <span data-i18n="featuresBtn">বিশেষত্ব দেখুন</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Phone Mockup -->
+                <div class="mockup-wrapper hero-anim hero-anim-delay-3">
+                    <div class="device-mockup">
+                        <div class="mockup-screen">
+                            <div class="mockup-header">
+                                <span class="app-name">⚡ AutoResponder</span>
+                                <span class="status" data-i18n="mockStatus">অনলাইন</span>
+                            </div>
+                            <div class="msg-bubbles">
+                                <div class="msg received" data-i18n="msg1">হ্যালো, আপনি কি উপলব্ধ?</div>
+                                <div class="msg sent" data-i18n="msg2">আপনার বার্তার জন্য ধন্যবাদ! আমি এখন ব্যস্ত, তবে শীঘ্রই উত্তর দেব।</div>
+                                <div class="msg received" data-i18n="msg3">ঠিক আছে, কোনো সমস্যা নেই!</div>
+                                <div class="msg sent" data-i18n="msg4">আমি ফ্রি হলে আপনাকে জানাব 😊</div>
+                                <div class="msg typing" aria-hidden="true">
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                </div>
+                            </div>
+                            <div class="mockup-footer" data-i18n="mockFooter">
+                                অটো-রিপ্লাই সক্রিয়
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="scroll-hint">↓ <span data-i18n="scrollHint">স্ক্রল করুন</span></div>
+        </div>
+    </section>
+
+    <!-- ========== FEATURES ========== -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title" data-i18n="featuresTitle">কেন <span>Auto Responder</span> বেছে নেবেন?</h2>
+            <div class="features-grid" id="featuresGrid">
+                <div class="feature-card" data-delay="0">
+                    <div class="feature-icon">⚡</div>
+                    <h3 data-i18n="f1Title">তাত্ক্ষণিক প্রতিক্রিয়া</h3>
+                    <p data-i18n="f1Desc">স্বয়ংক্রিয়ভাবে তাত্ক্ষণিক উত্তর দিন, আপনার পরিচিতদের জানিয়ে দিন।</p>
+                </div>
+                <div class="feature-card" data-delay="100">
+                    <div class="feature-icon">🎯</div>
+                    <h3 data-i18n="f2Title">কাস্টমাইজযোগ্য বার্তা</h3>
+                    <p data-i18n="f2Desc">বিভিন্ন পরিস্থিতির জন্য ব্যক্তিগতকৃত অটো-রিপ্লাই তৈরি করুন।</p>
+                </div>
+                <div class="feature-card" data-delay="200">
+                    <div class="feature-icon">🔒</div>
+                    <h3 data-i18n="f3Title">প্রথমে গোপনীয়তা</h3>
+                    <p data-i18n="f3Desc">আপনার ডেটা আপনার ডিভাইসেই থাকে। আমরা আপনার গোপনীয়তাকে সম্মান করি।</p>
+                </div>
+                <div class="feature-card" data-delay="300">
+                    <div class="feature-icon">⏰</div>
+                    <h3 data-i18n="f4Title">শিডিউল রুলস</h3>
+                    <p data-i18n="f4Desc">সময়, অবস্থান বা ক্যালেন্ডার ইভেন্টের ভিত্তিতে অটো-রিপ্লাই সেট করুন।</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== DOWNLOAD SECTION ========== -->
+    <section class="download-section" id="download">
+        <div class="container">
+            <h2 data-i18n="downloadTitle">📥 ডাউনলোড করুন</h2>
+            <p class="sub-download" data-i18n="downloadSub">আপনার ডিভাইসের জন্য অ্যাপটি নিন</p>
+            <div class="download-grid">
+                <!-- Android app download card -->
+                <div class="download-card" style="max-width:400px; margin:0 auto;">
+                    <div class="badge-label">
+                        📱 <span data-i18n="phoneApp">Android অ্যাপ</span>
+                        <small>APK</small>
+                    </div>
+                    <p style="font-size:0.9rem; opacity:0.8; margin:6px 0 12px;" data-i18n="phoneDesc">
+                        অ্যান্ড্রয়েড ফোনে ইনস্টল করে অটো-রিপ্লাই শুরু করুন
+                    </p>
+                    <!-- Direct download link — no JavaScript, no toast, just pure download -->
+                    <a href="app/autoresponder.apk" download="autoresponder.apk" class="btn btn-white btn-large" id="downloadApkBtn">
+                        ⬇️ <span data-i18n="phoneDownloadBtn">APK ডাউনলোড</span>                                   
+                
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="#" class="logo">⚡ Auto<span>Responder</span></a>
+                    <p data-i18n="footerTag">কখনও একটি বার্তা মিস করবেন না</p>
+                </div>
+                <a href="mailto:ah27042008@gmail.com" class="footer-email">
+                    ✉️ ah27042008@gmail.com
+                </a>
+            </div>
+            <div class="footer-bottom">
+                <p data-i18n="footerCopyright">&copy; 2026 Auto Responder. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== SCRIPT ========== -->
+    <script>
+        (function() {
+            // ----- i18n dictionary -----
+            const dict = {
+                bn: {
+                    badge: 'অটো-রিপ্লাই · কখনও মিস করবেন না',
+                    heroTitle: '<span>কখনও</span> একটি <span class="highlight">বার্তা</span> মিস করবেন না',
+                    heroSub: 'Auto Responder আপনাকে সংযুক্ত রাখতে সাহায্য করে — যখন আপনি ব্যস্ত, তখন স্বয়ংক্রিয়ভাবে উত্তর দেয়।',
+                    downloadBtn: 'অ্যাপ ডাউনলোড',
+                    featuresBtn: 'বিশেষত্ব দেখুন',
+                    mockStatus: 'অনলাইন',
+                    mockFooter: 'অটো-রিপ্লাই সক্রিয়',
+                    scrollHint: 'স্ক্রল করুন',
+                    msg1: 'হ্যালো, আপনি কি উপলব্ধ?',
+                    msg2: 'আপনার বার্তার জন্য ধন্যবাদ! আমি এখন ব্যস্ত, তবে শীঘ্রই উত্তর দেব।',
+                    msg3: 'ঠিক আছে, কোনো সমস্যা নেই!',
+                    msg4: 'আমি ফ্রি হলে আপনাকে জানাব 😊',
+                    featuresTitle: 'কেন <span>Auto Responder</span> বেছে নেবেন?',
+                    f1Title: 'তাত্ক্ষণিক প্রতিক্রিয়া',
+                    f1Desc: 'স্বয়ংক্রিয়ভাবে তাত্ক্ষণিক উত্তর দিন, আপনার পরিচিতদের জানিয়ে দিন।',
+                    f2Title: 'কাস্টমাইজযোগ্য বার্তা',
+                    f2Desc: 'বিভিন্ন পরিস্থিতির জন্য ব্যক্তিগতকৃত অটো-রিপ্লাই তৈরি করুন।',
+                    f3Title: 'প্রথমে গোপনীয়তা',
+                    f3Desc: 'আপনার ডেটা আপনার ডিভাইসেই থাকে। আমরা আপনার গোপনীয়তাকে সম্মান করি।',
+                    f4Title: 'শিডিউল রুলস',
+                    f4Desc: 'সময়, অবস্থান বা ক্যালেন্ডার ইভেন্টের ভিত্তিতে অটো-রিপ্লাই সেট করুন।',
+                    downloadTitle: '📥 ডাউনলোড করুন',
+                    downloadSub: 'আপনার ডিভাইসের জন্য অ্যাপটি নিন',
+                    phoneApp: 'Android অ্যাপ',
+                    phoneDesc: 'অ্যান্ড্রয়েড ফোনে ইনস্টল করে অটো-রিপ্লাই শুরু করুন',
+                    phoneDownloadBtn: 'APK ডাউনলোড',
+                    footerTag: 'কখনও একটি বার্তা মিস করবেন না',
+                    footerCopyright: '© 2026 Auto Responder. All rights reserved.'
+                },
+                en: {
+                    badge: 'Auto-Reply · Never Miss',
+                    heroTitle: '<span>Never</span> Miss a <span class="highlight">Message</span> Again',
+                    heroSub: 'Auto Responder helps you stay connected — automatically replying when you\'re busy.',
+                    downloadBtn: 'Download App',
+                    featuresBtn: 'See Features',
+                    mockStatus: 'Online',
+                    mockFooter: 'Auto-Reply Active',
+                    scrollHint: 'Scroll down',
+                    msg1: 'Hey, are you available?',
+                    msg2: 'Thanks for your message! I\'m busy right now but will reply soon.',
+                    msg3: 'Okay, no problem!',
+                    msg4: 'I\'ll let you know when I\'m free 😊',
+                    featuresTitle: 'Why Choose <span>Auto Responder</span>?',
+                    f1Title: 'Instant Responses',
+                    f1Desc: 'Automatically reply instantly, keeping your contacts informed.',
+                    f2Title: 'Customizable Messages',
+                    f2Desc: 'Create personalized auto-reply messages for different situations.',
+                    f3Title: 'Privacy First',
+                    f3Desc: 'Your data stays on your device. We respect your privacy.',
+                    f4Title: 'Schedule Rules',
+                    f4Desc: 'Set auto-reply based on time, location, or calendar events.',
+                    downloadTitle: '📥 Download',
+                    downloadSub: 'Get the app for your device',
+                    phoneApp: 'Android App',
+                    phoneDesc: 'Install on Android and start auto-replying',
+                    phoneDownloadBtn: 'Download APK',
+                    footerTag: 'Never miss a message again',
+                    footerCopyright: '© 2026 Auto Responder. All rights reserved.'
+                }
+            };
+
+            // ----- DOM refs -----
+            const langBtns = document.querySelectorAll('.lang-btn');
+            const i18nEls = document.querySelectorAll('[data-i18n]');
+            let currentLang = 'bn';
+
+            // ----- Set language -----
+            function setLang(lang) {
+                currentLang = lang;
+                i18nEls.forEach(el => {
+                    const key = el.dataset.i18n;
+                    if (dict[lang] && dict[lang][key]) {
+                        if (key === 'heroTitle' || key === 'featuresTitle') {
+                            el.innerHTML = dict[lang][key];
+                        } else {
+                            el.textContent = dict[lang][key];
+                        }
+                    }
+                });
+
+                // Update typing words
+                const typingEl = document.querySelector('.typing-text');
+                if (typingEl) {
+                    const words = lang === 'bn' ?
+                        ['✅ তাত্ক্ষণিক অটো-রিপ্লাই', '⏰ স্মার্ট শিডিউল রুলস', '🔒 ১০০% অন-ডিভাইস প্রাইভেসি',
+                            '📩 কখনও বার্তা মিস করবেন না'
+                        ] :
+                        ['✅ Instant auto-replies', '⏰ Smart schedule rules', '🔒 100% on-device privacy',
+                            '📩 Never miss a message'
+                        ];
+                    typingEl.dataset.words = JSON.stringify(words);
+                    if (window.__typingInterval) {
+                        clearTimeout(window.__typingInterval);
+                    }
+                    setTimeout(() => initTyping(typingEl), 100);
+                }
+
+                langBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.lang === lang);
+                });
+
+                localStorage.setItem('AutoResponder-lang', lang);
+                document.documentElement.lang = lang === 'bn' ? 'bn' : 'en';
+            }
+
+            // ----- Typing effect -----
+            function initTyping(el) {
+                if (!el) return;
+                const words = JSON.parse(el.dataset.words);
+                let wordIndex = 0;
+                let charIndex = 0;
+                let isDeleting = false;
+                let currentText = '';
+
+                function type() {
+                    const fullWord = words[wordIndex];
+                    if (isDeleting) {
+                        currentText = fullWord.substring(0, charIndex - 1);
+                        charIndex--;
+                    } else {
+                        currentText = fullWord.substring(0, charIndex + 1);
+                        charIndex++;
+                    }
+                    el.textContent = currentText;
+
+                    let delay = isDeleting ? 40 : 80;
+
+                    if (!isDeleting && charIndex === fullWord.length) {
+                        delay = 2000;
+                        isDeleting = true;
+                    } else if (isDeleting && charIndex === 0) {
+                        isDeleting = false;
+                        wordIndex = (wordIndex + 1) % words.length;
+                        delay = 400;
+                    }
+                    window.__typingInterval = setTimeout(type, delay);
+                }
+                type();
+            }
+
+            // ----- Event listeners -----
+            langBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setLang(this.dataset.lang);
+                });
+            });
+
+            // Hero download button → smooth scroll to download section
+            document.getElementById('heroDownloadBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.getElementById('download');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+
+            // ---- Restore language ----
+            const saved = localStorage.getItem('AutoResponder-lang') || 'bn';
+            setLang(saved);
+
+            // ----- Feature Cards Observer -----
+            const featureCards = document.querySelectorAll('.feature-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const delay = parseInt(entry.target.dataset.delay) || 0;
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, delay);
+                    }
+                });
+            }, { threshold: 0.2, rootMargin: '0px 0px -50px 0px' });
+
+            featureCards.forEach(card => observer.observe(card));
+
+            // ----- Smooth anchor for other links -----
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href === '#' || href === '#download' || href === '#features') {
+                        if (href === '#download') return;
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                });
+            });
+
+        })();
+    </script>
+
+</body>
+</html>
